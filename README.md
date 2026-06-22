@@ -42,7 +42,3 @@ Edit only the `CONFIG` dict at the top of `hpo_benchmark.py`
 Designed for a normal laptop (CPU). Full run (10 datasets x 30 seeds x 6
 optimizers x 100 evals) is a few hours — run it overnight. To pilot first,
 lower n_seeds to 5 and use 3 datasets.
-
-## Suggested target journals (Sinta-2 / Q-level)
-Indonesian: IJEECS, TELKOMNIKA, Jurnal RESTI, JITeCS, Kinetik.
-International Q-tier: Applied Soft Computing, Expert Systems with Applications.
