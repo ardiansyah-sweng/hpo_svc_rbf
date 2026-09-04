@@ -1,0 +1,8 @@
+@inproceedings{turner2021bayesian,
+  title={Bayesian optimization is superior to random search for machine learning hyperparameter tuning: Analysis of the black-box optimization challenge 2020},
+  author={Turner, Ryan and Eriksson, David and McCourt, Michael and Kiili, Juha and Laaksonen, Eero and Xu, Zhen and Guyon, Isabelle},
+  booktitle={NeurIPS 2020 competition and demonstration track},
+  pages={3--26},
+  year={2021},
+  organization={PMLR}
+}

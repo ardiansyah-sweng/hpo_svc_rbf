@@ -1,0 +1,2 @@
+dataset,openml_id,n_samples,n_features,n_features_encoded,n_classes,ratio_nd
+banknote,1462,1372,4,4,2,343.0

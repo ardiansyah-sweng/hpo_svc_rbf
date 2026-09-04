@@ -1,0 +1,4 @@
+isolation_mode,unique_train_test_partitions,unique_cv_partitions,unique_optimizer_inits,n_runs
+isolate_F,1,30,1,2700
+isolate_O,1,1,30,2700
+isolate_S,30,1,1,2700

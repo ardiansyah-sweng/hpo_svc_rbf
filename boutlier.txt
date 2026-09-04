@@ -1,0 +1,8 @@
+@article{bouthillier2021accounting,
+  title={Accounting for variance in machine learning benchmarks},
+  author={Bouthillier, Xavier and Delaunay, Pierre and Bronzi, Mirko and Trofimov, Assya and Nichyporuk, Brennan and Szeto, Justin and Mohammadi Sepahvand, Nazanin and Raff, Edward and Madan, Kanika and Voleti, Vikram and others},
+  journal={Proceedings of machine learning and systems},
+  volume={3},
+  pages={747--769},
+  year={2021}
+}
