@@ -1,0 +1,11 @@
+dataset,distinct_single_run_winners,winners
+banknote,2,"grid,random"
+breast-w,8,"bo_tpe,cuckoo,de,ga,grid,random,sa,sh"
+car,5,"bo_tpe,ga,grid,random,sh"
+diabetes,8,"bo_tpe,cuckoo,de,grid,pso,random,sa,sh"
+ilpd,9,"bo_tpe,cuckoo,de,ga,grid,pso,random,sa,sh"
+ozone-8hr,8,"bo_tpe,cuckoo,de,ga,grid,pso,random,sh"
+qsar-biodeg,8,"bo_tpe,cuckoo,de,grid,pso,random,sa,sh"
+steel-faults,8,"bo_tpe,cuckoo,de,ga,grid,pso,random,sa"
+vehicle,8,"bo_tpe,cuckoo,de,ga,grid,pso,sa,sh"
+wdbc,6,"bo_tpe,cuckoo,de,grid,random,sh"

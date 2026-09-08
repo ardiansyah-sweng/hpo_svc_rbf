@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.DS_Store
+*.tmp
+results/*/checkpoints/
+results/verify_tmp/
+venv/
+.venv/

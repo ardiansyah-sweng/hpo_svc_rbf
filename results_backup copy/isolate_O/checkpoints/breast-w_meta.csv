@@ -1,2 +1,0 @@
-dataset,openml_id,n_samples,n_features,n_features_encoded,n_classes,ratio_nd
-breast-w,15,699,9,9,2,77.66666666666667

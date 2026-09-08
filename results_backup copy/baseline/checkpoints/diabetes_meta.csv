@@ -1,2 +1,0 @@
-dataset,openml_id,n_samples,n_features,n_features_encoded,n_classes,ratio_nd
-diabetes,37,768,8,8,2,96.0
