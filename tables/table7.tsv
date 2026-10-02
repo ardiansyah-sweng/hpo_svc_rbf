@@ -1,0 +1,12 @@
+dataset	Split	CV	Opt.	Agg. SD
+banknote	100.0	0.0	0.0	0.0000
+car	94.2	5.8	0.0	0.0036
+qsar-biodeg	87.7	5.6	9.0	0.0235
+ilpd	85.3	9.1	4.9	0.0320
+breast-w	81.9	12.0	4.0	0.0138
+vehicle	81.9	9.6	8.4	0.0267
+steel-faults	70.9	11.9	16.1	0.0259
+wdbc	62.7	19.1	13.5	0.0162
+ozone-8hr	56.2	22.6	21.8	0.0101
+diabetes	54.5	39.8	1.6	0.0349
+Median (all)	80.2	11.8	6.9	

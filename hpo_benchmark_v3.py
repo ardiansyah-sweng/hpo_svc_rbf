@@ -31,7 +31,7 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
 warnings.filterwarnings("ignore")
 
@@ -52,6 +52,15 @@ CONFIG = {
     #   "isolate_S"  -> vary train/test split only
     #   "isolate_O"  -> vary optimizer init only
     "decomp_mode": "baseline",
+    # Reviewer 2 comment 6: "accuracy" reproduces every existing run;
+    # "balanced_accuracy" repeats the study under a metric whose no-skill
+    # floor does not depend on the class proportions.
+    "metric": "accuracy",
+    # Reviewer 1 comment 2 / Reviewer 2 comment 1: count only rho = 1
+    # evaluations toward targets and toward the final selection. False keeps
+    # the original behaviour; run_sh_fullfid.py sets it to True. It has no
+    # effect on full-fidelity optimizers.
+    "full_fidelity_only": False,
     # Grid traversal order (Reviewer R2.6): "random" (default, averages over
     # orderings), "row_major" (the submitted behaviour), "col_major", "spiral".
     "grid_order": "row_major",
@@ -126,12 +135,14 @@ class Objective:
             ("svc", SVC(C=2.0 ** log2C, gamma=2.0 ** log2g, kernel="rbf")),
         ])
         score = cross_val_score(pipe, Xe, ye, cv=self.cv,
-                                scoring="accuracy",
+                                scoring=self.cfg.get("metric", "accuracy"),
                                 n_jobs=self.cfg.get("cv_n_jobs", 1)).mean()
         self.n_eval += 1
         self.spent += cost
         # store (raw_index, log2C, log2g, score, weighted_spent_after)
-        self.history.append((self.n_eval, log2C, log2g, score, self.spent))
+        # (raw_index, log2C, log2g, score, weighted_spent_after, rho)
+        self.history.append((self.n_eval, log2C, log2g, score, self.spent,
+                             float(frac)))
         return score
 
     def _subsample(self, frac):
@@ -147,7 +158,7 @@ class Objective:
                             random_state=self.cfg["cv_seed"], stratify=self.y)
         return Xs, ys
 
-    def best_so_far_curve(self):
+    def best_so_far_curve(self, full_fidelity_only=False):
         """Anytime best-so-far accuracy on the WEIGHTED budget axis.
 
         The x-axis has cfg['budget'] slots, one per full-fidelity-equivalent unit of
@@ -160,6 +171,12 @@ class Objective:
         curve = np.full(B, np.nan)
         best = -np.inf
         for h in self.history:
+            # With full_fidelity_only, an evaluation at rho < 1 still consumes
+            # budget (the slot index below advances with `spent`) but cannot
+            # raise the best-so-far: a target counts as reached only once a
+            # full-fidelity evaluation attains it.
+            if full_fidelity_only and len(h) > 5 and h[5] < 1.0 - 1e-9:
+                continue
             s = h[3]
             spent_after = h[4] if len(h) > 4 else h[0]
             best = max(best, s)
@@ -174,11 +191,22 @@ class Objective:
                 curve[i] = last
             else:
                 last = curve[i]
+        if full_fidelity_only:
+            # no full-fidelity result yet -> undefined, not -inf
+            curve[np.isneginf(curve)] = np.nan
         return curve
 
-    def best_config(self):
+    def best_config(self, full_fidelity_only=False):
         if not self.history:
             return None
+        if full_fidelity_only:
+            # Standard successive halving returns the survivor of its last,
+            # full-fidelity rung. Selecting over subsample scores instead can
+            # pick a configuration that merely looked good on a tiny fraction.
+            full = [h for h in self.history if len(h) <= 5 or h[5] >= 1.0 - 1e-9]
+            if full:
+                b = max(full, key=lambda h: h[3])
+                return (b[0], b[1], b[2], b[3])
         # history entries are 5-tuples (idx, log2C, log2g, score, spent); downstream
         # callers expect the original 4-tuple (idx, log2C, log2g, score).
         b = max(self.history, key=lambda h: h[3])
@@ -607,7 +635,10 @@ def evaluate_test(X_tr, y_tr, X_te, y_te, log2C, log2g, cfg):
         ("svc", SVC(C=2.0**log2C, gamma=2.0**log2g, kernel="rbf")),
     ])
     pipe.fit(X_tr, y_tr)
-    return accuracy_score(y_te, pipe.predict(X_te))
+    pred = pipe.predict(X_te)
+    if cfg.get("metric", "accuracy") == "balanced_accuracy":
+        return balanced_accuracy_score(y_te, pred)
+    return accuracy_score(y_te, pred)
 
 
 # =============================================================================
@@ -695,12 +726,15 @@ def run_one_dataset(oid, name, cfg, optimizers, n_seeds, verbose=True):
             t0 = time.time()
             RUNNERS[opt](obj, cfg, seed_opt)
             elapsed = time.time() - t0
-            bc = obj.best_config()
+            ffo = cfg.get("full_fidelity_only", False)
+            bc = obj.best_config(full_fidelity_only=ffo)
+            bc_any = obj.best_config(full_fidelity_only=False)
             if bc is None:
                 continue
             _, bC, bg, cv_best = bc
             test_acc = evaluate_test(X_tr, y_tr, X_te, y_te, bC, bg, cfg)
-            curve = obj.best_so_far_curve()
+            curve = obj.best_so_far_curve(full_fidelity_only=ffo)
+            curve_any = obj.best_so_far_curve(full_fidelity_only=False)
             thr = 0.99 * cv_best
             reach = int(np.argmax(curve >= thr) + 1) if np.any(curve >= thr) else cfg["budget"]
             rows.append({"dataset": name, "optimizer": opt,
@@ -710,11 +744,16 @@ def run_one_dataset(oid, name, cfg, optimizers, n_seeds, verbose=True):
                          "cv_best": cv_best, "test_acc": test_acc,
                          "best_log2C": bC, "best_log2gamma": bg,
                          "time_sec": elapsed, "evals_to_99pct": reach,
-                         "n_evals_used": obj.n_eval})
+                         "n_evals_used": obj.n_eval,
+                         "cv_best_anyfid": bc_any[3],
+                         "n_fullfid_evals": sum(1 for h in obj.history
+                                                 if len(h) <= 5 or h[5] >= 1.0 - 1e-9),
+                         "full_fidelity_only": bool(ffo)})
             for i, v in enumerate(curve):
                 curves.append({"dataset": name, "optimizer": opt,
                                "rep": rep, "seed": rep,
-                               "eval": i + 1, "best_so_far": v})
+                               "eval": i + 1, "best_so_far": v,
+                               "best_so_far_anyfid": curve_any[i]})
         if verbose and (rep + 1) % max(1, n_seeds // 5) == 0:
             print(f"    {name}: rep {rep+1}/{n_seeds} "
                   f"({(time.time()-t_ds)/60:.1f} min elapsed)", flush=True)

@@ -115,35 +115,55 @@ def figure_traversal(path, out_dir):
     med = [df.loc[df.policy == p, "evals_to_99pct"].median() for p in order]
     acc = [df.loc[df.policy == p, "test_acc"].mean() for p in order]
 
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.9))
+    # The two panels are drawn by helpers so the same code produces the combined
+    # two-panel figure and two standalone single-column figures. Standalone
+    # versions carry no (a)/(b) label: each gets its own caption in the paper.
+    def panel_efficiency(ax, panel_label=None):
+        ax.bar(labels, med, color=BARS[:len(order)], edgecolor="black", linewidth=0.5)
+        ax.set_ylabel("Median evaluations to target", fontsize=10)
+        ymax = max(med) * 1.20
+        for i, v in enumerate(med):
+            ax.text(i, v + ymax * 0.03, f"{v:.1f}", ha="center", fontsize=9)
+        ax.set_ylim(0, ymax)
+        if panel_label:
+            ax.set_xlabel(panel_label, fontsize=10, labelpad=8)
+        ax.tick_params(labelsize=9, axis="x", rotation=25)
+        ax.grid(axis="y", alpha=0.25, linewidth=0.5)
+        ax.set_axisbelow(True)
 
-    axes[0].bar(labels, med, color=BARS[:len(order)], edgecolor="black", linewidth=0.5)
-    axes[0].set_ylabel("Median evaluations to target", fontsize=10)
-    axes[0].set_title("(a) Search efficiency", fontsize=10)
-    ymax = max(med) * 1.20
-    for i, v in enumerate(med):
-        axes[0].text(i, v + ymax * 0.03, f"{v:.1f}", ha="center", fontsize=9)
-    axes[0].set_ylim(0, ymax)
-    axes[0].tick_params(labelsize=9, axis="x", rotation=25)
-    axes[0].grid(axis="y", alpha=0.25, linewidth=0.5)
-    axes[0].set_axisbelow(True)
+    def panel_quality(ax, panel_label=None):
+        ax.bar(labels, acc, color=BARS[:len(order)], edgecolor="black", linewidth=0.5)
+        ax.set_ylabel("Mean test accuracy", fontsize=10)
+        lo, hi = min(acc), max(acc)
+        pad = max(0.010, (hi - lo) * 6)
+        ax.set_ylim(lo - pad, hi + pad)
+        for i, v in enumerate(acc):
+            ax.text(i, v + pad * 0.10, f"{v:.4f}", ha="center", fontsize=8.5)
+        if panel_label:
+            ax.set_xlabel(panel_label, fontsize=10, labelpad=8)
+        ax.tick_params(labelsize=9, axis="x", rotation=25)
+        ax.grid(axis="y", alpha=0.25, linewidth=0.5)
+        ax.set_axisbelow(True)
 
-    axes[1].bar(labels, acc, color=BARS[:len(order)], edgecolor="black", linewidth=0.5)
-    axes[1].set_ylabel("Mean test accuracy", fontsize=10)
-    axes[1].set_title("(b) Solution quality", fontsize=10)
-    lo, hi = min(acc), max(acc)
-    pad = max(0.010, (hi - lo) * 6)
-    axes[1].set_ylim(lo - pad, hi + pad)
-    for i, v in enumerate(acc):
-        axes[1].text(i, v + pad * 0.10, f"{v:.4f}", ha="center", fontsize=8.5)
-    axes[1].tick_params(labelsize=9, axis="x", rotation=25)
-    axes[1].grid(axis="y", alpha=0.25, linewidth=0.5)
-    axes[1].set_axisbelow(True)
-
+    # combined, two columns wide
+    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.2))
+    panel_efficiency(axes[0], "(a) Search efficiency")
+    panel_quality(axes[1], "(b) Solution quality")
     out = os.path.join(out_dir, "fig2_traversal.png")
     plt.tight_layout()
     plt.savefig(out, dpi=300, bbox_inches="tight")
     plt.close()
+
+    # standalone, one column wide each
+    for name, draw in (("fig2a_efficiency.png", panel_efficiency),
+                       ("fig2b_quality.png", panel_quality)):
+        f, ax = plt.subplots(figsize=(3.5, 2.9))
+        draw(ax)
+        plt.tight_layout()
+        plt.savefig(os.path.join(out_dir, name), dpi=300, bbox_inches="tight")
+        plt.close()
+    print(f"[OK] {os.path.join(out_dir, 'fig2a_efficiency.png')}")
+    print(f"[OK] {os.path.join(out_dir, 'fig2b_quality.png')}")
 
     print(f"[OK] {out}")
     for l, m, a in zip(labels, med, acc):

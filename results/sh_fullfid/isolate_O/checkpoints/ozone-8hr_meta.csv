@@ -1,0 +1,2 @@
+dataset,openml_id,n_samples,n_features,n_features_encoded,n_classes,ratio_nd
+ozone-8hr,1487,2534,72,72,2,35.19444444444444

@@ -113,6 +113,14 @@ def main():
             median_evals=g["evals_to_target"].median(),
             mean_evals=g["evals_to_target"].mean(),
             reach_rate=g["reached"].mean(),
+            # Median over the runs that actually reached the target. The columns
+            # above include failures at budget+1, so at the harder targets they
+            # are dominated by that administrative cap rather than by hitting
+            # time. This column separates "how fast when it works" from "how
+            # often it works", which the reach_rate column already reports.
+            median_reached=(g.loc[g["reached"], "evals_to_target"].median()
+                            if g["reached"].any() else float("nan")),
+            n_reached=int(g["reached"].sum()),
         ))
     summary = pd.DataFrame(summ).sort_values(["target", "median_evals"])
     summary.to_csv(os.path.join(args.out, "common_target_summary.csv"), index=False)
@@ -128,10 +136,16 @@ def main():
     for f in targets:
         sub = summary[summary["target"] == f].sort_values("median_evals")
         print(f"=== Target = {f:.0%} of shared reference ===")
-        print(f"  {'optimizer':10} {'median_evals':>12} {'mean_evals':>11} {'reach_rate':>11}")
+        print(f"  {'optimizer':10} {'median_all':>11} {'median_hit':>11} "
+              f"{'mean_evals':>11} {'reach_rate':>11}")
         for _, r in sub.iterrows():
-            print(f"  {r['optimizer']:10} {r['median_evals']:>12.1f} "
+            print(f"  {r['optimizer']:10} {r['median_evals']:>11.1f} "
+                  f"{r['median_reached']:>11.1f} "
                   f"{r['mean_evals']:>11.1f} {r['reach_rate']:>10.0%}")
+        if sub["reach_rate"].min() < 0.95:
+            print(f"  NOTE: reach rate falls to {sub['reach_rate'].min():.0%} at this "
+                  f"target, so median_all is inflated by the budget+1 cap.")
+            print("  Read median_hit (successful runs only) alongside reach_rate.")
         print()
 
     # ---- dataset-level median (pseudoreplication-safe, ties to R1.8/R2.5) ----

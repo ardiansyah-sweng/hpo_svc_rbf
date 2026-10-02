@@ -1,0 +1,5 @@
+Policy	Med	Mean	Min	Max	Acc
+Row-major (conventional)	26.0	29.57	1	94	0.8830
+Column-major	20.0	24.66	1	94	0.8827
+Random permutation	4.0	11.86	1	95	0.8827
+Centre-outwards spiral	2.0	5.86	1	75	0.8829

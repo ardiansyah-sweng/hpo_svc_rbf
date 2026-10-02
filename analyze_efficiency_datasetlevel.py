@@ -138,21 +138,33 @@ def main():
                       and nem.loc["sh", o] < args.alpha]
             print(f"  sh mean rank = {sh_rank:.2f} (of {len(optimizers)}); "
                   f"nominally faster than {len(better_than)} optimizers.")
-            sh_sig_names = [o for o, pv in sh_sig]
-            sh_vs_adaptive = [o for o in sh_sig_names if o != "grid"]
-            if sh_sig:
-                print("  sh is SIGNIFICANTLY faster than: " +
-                      ", ".join(f"{o} (p={pv:.3f})" for o, pv in sh_sig))
-            if sh_vs_adaptive:
+            # A small Nemenyi p-value says only that the pair differs. The
+            # direction comes from the mean ranks: a LOWER mean rank is faster.
+            faster = [(o, pv) for o, pv in sh_sig if mean_rank["sh"] < mean_rank[o]]
+            slower = [(o, pv) for o, pv in sh_sig if mean_rank["sh"] > mean_rank[o]]
+            fmt = lambda xs: ", ".join(f"{o} (p={pv:.3f})" for o, pv in xs)
+            if faster:
+                print("  sh is SIGNIFICANTLY FASTER than: " + fmt(faster))
+            if slower:
+                print("  sh is SIGNIFICANTLY SLOWER than: " + fmt(slower))
+            faster_adaptive = [o for o, _ in faster if o != "grid"]
+            if faster and slower:
+                print("  -> Mixed: SH is faster than some optimizers and slower than "
+                      "others. Report the two lists separately, not as an overall edge.")
+            elif slower:
+                print("  -> SH is significantly SLOWER than the optimizers listed above. "
+                      "Any apparent efficiency advantage does not survive; report SH as "
+                      "the slowest member of the group at this target.")
+            elif faster_adaptive:
                 print("  -> SH's edge SURVIVES over ADAPTIVE methods "
-                      f"({', '.join(sh_vs_adaptive)}); a genuine high-target advantage.")
-            elif sh_sig_names == ["grid"]:
+                      f"({', '.join(faster_adaptive)}); a genuine high-target advantage.")
+            elif [o for o, _ in faster] == ["grid"]:
                 print("  -> SH is faster than GRID only, like every adaptive method. "
                       "Its apparent edge over the adaptive group does NOT survive "
                       "dataset-level blocking; report as within the adaptive cluster.")
             else:
-                print("  -> SH is NOT significantly faster than any optimizer after "
-                      "Nemenyi correction; report as non-significant.")
+                print("  -> SH is NOT significantly faster or slower than any optimizer "
+                      "after Nemenyi correction; report as non-significant.")
     elif p < args.alpha and not HAVE_POSTHOCS:
         print("[WARN] scikit-posthocs not installed; cannot run Nemenyi.")
         print("       pip install scikit-posthocs")

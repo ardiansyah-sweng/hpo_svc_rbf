@@ -77,12 +77,44 @@ def decompose(df_all):
     return pd.DataFrame(recs)
 
 
+def additivity_check(dec, baseline_path):
+    """Test how far the isolated variances depart from additivity.
+
+    The one-factor-at-a-time design estimates the variance attributable to each
+    random source with the other two held fixed. That is an attribution, not a full
+    variance decomposition: interaction terms are not estimated, so the isolated
+    contributions need not sum to the variance observed when several sources vary
+    together.
+
+    The baseline configuration provides a direct test, because it varies the
+    train/test split and the optimizer seed together while holding the CV folds
+    fixed. If the two contributions were additive we would expect
+
+        Var(baseline)  ==  Var_split + Var_opt
+
+    The ratio of the two is reported below. A ratio near 1 means the isolated
+    contributions add up; a ratio below 1 means their sum overstates the variance
+    actually observed when both sources vary, i.e. a negative interaction.
+    """
+    base = pd.read_csv(baseline_path)
+    obs = (base.groupby(["dataset", "optimizer"])["test_acc"]
+               .var(ddof=1).rename("var_baseline").reset_index())
+    m = dec.merge(obs, on=["dataset", "optimizer"], how="inner")
+    m["var_predicted"] = m["var_split_S"] + m["var_opt_O"]
+    # drop degenerate pairs where both are numerically zero
+    m = m[(m["var_baseline"] > 1e-12) & (m["var_predicted"] > 1e-12)].copy()
+    m["ratio"] = m["var_baseline"] / m["var_predicted"]
+    return m[["dataset", "optimizer", "var_baseline", "var_predicted", "ratio"]]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--isolate_F", required=True)
     ap.add_argument("--isolate_S", required=True)
     ap.add_argument("--isolate_O", required=True)
     ap.add_argument("--out", default="results/variance")
+    ap.add_argument("--baseline", default=None,
+                    help="baseline summary.csv; enables the additivity check")
     args = ap.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
@@ -106,6 +138,23 @@ def main():
         print(f"  {k:16s}: {v:6.1%}")
     print("\nWrote:", os.path.join(args.out, "seed_map.csv"))
     print("Wrote:", os.path.join(args.out, "variance_components.csv"))
+
+    if args.baseline:
+        add = additivity_check(dec, args.baseline)
+        add.to_csv(os.path.join(args.out, "additivity_check.csv"), index=False)
+        r = add["ratio"]
+        print("\n=== Additivity check: Var(baseline) / (Var_split + Var_opt) ===")
+        print("The baseline varies split and optimizer together with folds fixed,")
+        print("so a ratio near 1 indicates the isolated contributions are additive.")
+        print(f"  pairs with non-zero variance : {len(add)}")
+        print(f"  median ratio                 : {r.median():.2f}")
+        print(f"  interquartile range          : {r.quantile(.25):.2f} - {r.quantile(.75):.2f}")
+        print(f"  within 20% of additive       : {r.between(0.8, 1.2).mean():.0%}")
+        print(f"  within 50% of additive       : {r.between(0.5, 1.5).mean():.0%}")
+        print("\n  median ratio per dataset:")
+        for ds, g in add.groupby("dataset"):
+            print(f"    {ds:14} {g['ratio'].median():5.2f}  (n={len(g)})")
+        print("\nWrote:", os.path.join(args.out, "additivity_check.csv"))
 
     # sanity check
     grid = dec[dec.optimizer == "grid"]

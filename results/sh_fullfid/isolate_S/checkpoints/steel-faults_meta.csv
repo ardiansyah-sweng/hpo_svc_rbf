@@ -1,0 +1,2 @@
+dataset,openml_id,n_samples,n_features,n_features_encoded,n_classes,ratio_nd
+steel-faults,40982,1941,27,27,7,71.88888888888889

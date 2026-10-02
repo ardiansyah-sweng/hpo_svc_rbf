@@ -1,0 +1,11 @@
+dataset,regimeA_winner_seed0,regimeA_winner_rank_min,regimeA_winner_rank_max,regimeB_nominal_best,regimeB_friedman_p,regimeB_significant_winner
+banknote,grid,5,8,bo_tpe,0.4335,False
+breast-w,grid,3,9,sa,0.7368,False
+car,grid,1,8,random,0.3108,False
+diabetes,cuckoo,1,8,sh,0.8974,False
+ilpd,bo_tpe,1,8,cuckoo,0.128,False
+ozone-8hr,sh,1,9,grid,0.1425,False
+qsar-biodeg,random,1,9,random,0.2305,False
+steel-faults,pso,1,9,grid,0.7766,False
+vehicle,bo_tpe,1,8,grid,0.1124,False
+wdbc,grid,1,8,grid,0.0471,True

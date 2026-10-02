@@ -1,0 +1,11 @@
+dataset,n_pairs,frac_equivalent
+banknote,36,1.0
+breast-w,36,1.0
+car,36,1.0
+diabetes,36,0.8611111111111112
+ilpd,36,0.08333333333333333
+ozone-8hr,36,0.5833333333333334
+qsar-biodeg,36,1.0
+steel-faults,36,0.9722222222222222
+vehicle,36,0.8888888888888888
+wdbc,36,1.0

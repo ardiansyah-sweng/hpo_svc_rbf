@@ -1,0 +1,11 @@
+dataset	OpenML id	Samples	Features	Classes	Majority	Headroom (pp)
+banknote	1462	1372	4	2	0.5554	44.46
+breast-w	15	699	9	2	0.6552	31.62
+car	40975	1728	6	4	0.7002	29.47
+diabetes	37	768	8	2	0.6510	12.74
+ilpd	1480	583	10	2	0.7136	1.50
+ozone-8hr	1487	2534	72	2	0.9369	0.96
+qsar-biodeg	1494	1055	41	2	0.6626	22.25
+steel-faults	40982	1941	27	7	0.3467	42.10
+vehicle	54	846	18	4	0.2577	59.73
+wdbc	1510	569	30	2	0.6274	35.17
