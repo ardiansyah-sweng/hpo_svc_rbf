@@ -11,7 +11,7 @@ No new experiments required. Reads results/baseline/summary.csv.
 
 USAGE
 -----
-    python analyze_two_regime.py --summary results/baseline/summary.csv \
+    python analyze_two_regime.py --summary results/baseline_fullfid/summary.csv \
                                  --out results/two_regime
     # optional: --headline_seed 0   (which single seed is the Regime-A headline)
     #           --focus cuckoo,sh    (optimizers to spotlight in the verdict)
@@ -167,7 +167,7 @@ def analyze(df, headline_seed, focus):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--summary", required=True)
-    ap.add_argument("--out", default="results/two_regime")
+    ap.add_argument("--out", default="results/two_regime_fullfid")
     ap.add_argument("--headline_seed", type=int, default=0)
     ap.add_argument("--focus", default="cuckoo,sh")
     args = ap.parse_args()

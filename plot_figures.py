@@ -174,7 +174,7 @@ def figure_traversal(path, out_dir):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--variance", default="results/variance/variance_components.csv")
+    ap.add_argument("--variance", default="results/variance_fullfid/variance_components.csv")
     ap.add_argument("--grid_order", default="results/grid_order/grid_order_by_run.csv")
     ap.add_argument("--out", default="figures")
     args = ap.parse_args()

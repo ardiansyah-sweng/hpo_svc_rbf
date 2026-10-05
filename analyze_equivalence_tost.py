@@ -119,7 +119,7 @@ def per_dataset(df, optimizers, datasets, margin, alpha):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--summary", required=True)
-    ap.add_argument("--out", default="results/equivalence")
+    ap.add_argument("--out", default="results/equivalence_fullfid")
     ap.add_argument("--margin", type=float, default=0.01)
     ap.add_argument("--alpha", type=float, default=0.05)
     ap.add_argument("--margin_sd", action="store_true",

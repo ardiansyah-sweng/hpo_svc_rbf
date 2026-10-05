@@ -112,7 +112,7 @@ def main():
     ap.add_argument("--isolate_F", required=True)
     ap.add_argument("--isolate_S", required=True)
     ap.add_argument("--isolate_O", required=True)
-    ap.add_argument("--out", default="results/variance")
+    ap.add_argument("--out", default="results/variance_fullfid")
     ap.add_argument("--baseline", default=None,
                     help="baseline summary.csv; enables the additivity check")
     args = ap.parse_args()

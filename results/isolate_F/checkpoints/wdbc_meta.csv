@@ -1,2 +1,0 @@
-dataset,openml_id,n_samples,n_features,n_features_encoded,n_classes,ratio_nd
-wdbc,1510,569,30,30,2,18.966666666666665

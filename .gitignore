@@ -4,6 +4,7 @@ __pycache__/
 .DS_Store
 *.tmp
 results/*/checkpoints/
+**/checkpoints/
 results/verify_tmp/
 venv/
 .venv/

@@ -14,7 +14,7 @@ Reads results/baseline/anytime_curves.csv, which has columns:
 USAGE
 -----
     python analyze_common_target.py --curves results/baseline/anytime_curves.csv \
-        --out results/efficiency --targets 0.95,0.98,0.99
+        --out results/efficiency_gridrandom_fullfid --targets 0.95,0.98,0.99
 
 For each dataset:
   reference = max best_so_far achieved by ANY optimizer at the FINAL evaluation,
@@ -52,7 +52,7 @@ def detect_seed_col(df):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--curves", required=True)
-    ap.add_argument("--out", default="results/efficiency")
+    ap.add_argument("--out", default="results/efficiency_gridrandom_fullfid")
     ap.add_argument("--targets", default="0.90,0.95,0.98",
                     help="comma-separated fractions of the shared reference optimum")
     args = ap.parse_args()
